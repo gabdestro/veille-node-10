@@ -3,20 +3,26 @@
 const express = require('express');
 const fs = require('fs');
 const util = require("util");
+
 const app = express();
 const bodyParser= require('body-parser');
 const MongoClient = require('mongodb').MongoClient; // le pilote MongoDB
 const ObjectID = require('mongodb').ObjectID;
 /* on associe le moteur de vue au module «ejs» */
-
-
+//################################################################
+//################################################################
+const http = require('http');
+const server = http.Server(app);
+const io = require('./node_modules/chat_socket').listen(server);
+//################################################################
+//################################################################
 const i18n = require("i18n");
 const cookieParser = require('cookie-parser');
 
 app.use(cookieParser());
 app.use(express.static('public'));
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 /* Ajoute l'objet i18n à l'objet global «res» */
@@ -51,7 +57,7 @@ MongoClient.connect('mongodb://127.0.0.1:27017', (err, database) => {
  db = database.db('carnet_adresse')
 console.log('connexion à la BD')
 // lancement du serveur Express sur le port 8081
- app.listen(8081, (err) => {
+ server.listen(8081, (err) => {
  	if (err) console.log(err)
  console.log('connexion à la BD et on écoute sur le port 8081')
  })
@@ -163,7 +169,6 @@ app.get('/vider', (req, res) => {
 	let cursor = db.collection('adresse').drop((err, res)=>{
 		if(err) console.error(err)
 			console.log('ok')
-			
 		})
 	res.redirect('/adresse')
 })
@@ -171,3 +176,29 @@ app.get('/vider', (req, res) => {
 
 
 
+
+//################################################################
+//################################################################
+app.get('/chat', (req, res) => {
+	res.render('socket_vue.ejs')
+});
+/*
+
+io.on('connection', function(socket){ console.log(socket.id);
+	socket.on('setUser', function(data){ console.log('setUser');
+    console.log(data.user);
+	socket.emit('ackUser', data);
+   })
+}); // une connexion socket
+	let clavardage = "Chat socket"
+	res.render('socket_vue.ejs', {clavardage : clavardage})
+}
+
+
+
+io.on('connection', function(socket){ // l'écouteur général
+     socket.on('disconnect', function(){ }); 
+     socket.on('setUser', function(data){})
+});*/
+//################################################################
+//################################################################
